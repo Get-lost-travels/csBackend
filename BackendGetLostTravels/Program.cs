@@ -50,7 +50,7 @@ app.MapFallback(context =>
     context.Response.ContentType = "application/json";
     return context.Response.WriteAsJsonAsync(new
     {
-        error = 404,
+        status = 404,
         message = "Resource not found"
     });
 });

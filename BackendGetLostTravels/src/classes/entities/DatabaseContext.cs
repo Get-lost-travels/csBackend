@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication2.entities;
+namespace WebApplication2.classes.entities;
 
 public partial class DatabaseContext : DbContext
 {

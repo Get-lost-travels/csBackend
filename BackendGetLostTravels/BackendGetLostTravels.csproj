@@ -21,9 +21,4 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="src\entities\" />
-      <Folder Include="src\middleware\" />
-    </ItemGroup>
-
 </Project>

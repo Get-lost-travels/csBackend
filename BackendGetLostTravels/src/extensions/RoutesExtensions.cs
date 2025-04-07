@@ -51,7 +51,7 @@ public static class RoutesExtensions
             .Replace("\\", "/")
             .TrimStart('/')
             .Replace(".cs", "")
-            .Replace("/routes", "/");
+            .Replace("/routes", "");
 
         return relativePath;
     }

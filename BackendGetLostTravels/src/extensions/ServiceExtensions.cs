@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WebApplication2.entities;
+using WebApplication2.classes.entities;
 using WebApplication2.repositories;
 
 namespace WebApplication2.extensions;

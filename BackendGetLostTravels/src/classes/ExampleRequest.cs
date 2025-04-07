@@ -1,4 +1,4 @@
-namespace WebApplication2.dataClasses;
+namespace WebApplication2.classes;
 
 public class ExampleRequest
 {
