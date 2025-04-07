@@ -7,6 +7,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new Exception("ConnectionStrings.DefaultConnection string not found");
+}
+builder.Services.AddRepositories(connectionString);
+
 var app = builder.Build();
 
 // Configure standard middleware
