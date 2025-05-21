@@ -23,7 +23,7 @@ public static class MiddlewareExtensions
 
         foreach (var middlewareType in middlewareTypes)
         {
-            app.UseMiddleware(middlewareType);
+            app.UseMiddleware(middlewareType!);
         }
 
         return app;

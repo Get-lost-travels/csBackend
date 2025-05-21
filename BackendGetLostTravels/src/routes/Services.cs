@@ -113,8 +113,11 @@ public class Services
             // Only allow agency owner or webadmin
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (service.Agency == null) return Results.Forbid();
+                var agency = service.Agency != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId)
+                    : null;
+                if (service.Agency == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 
@@ -146,8 +149,11 @@ public class Services
             // Only allow agency owner or webadmin
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (service.Agency == null) return Results.Forbid();
+                var agency = service.Agency != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId)
+                    : null;
+                if (service.Agency == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 
@@ -271,8 +277,11 @@ public class Services
             if (service == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (service.Agency == null) return Results.Forbid();
+                var agency = service.Agency != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId)
+                    : null;
+                if (service.Agency == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 
@@ -324,8 +333,11 @@ public class Services
             if (media == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (media.Service == null) return Results.Forbid();
+                var agency = media.Service != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId)
+                    : null;
+                if (media.Service == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
             dbContext.ServiceMedia.Remove(media);
@@ -346,8 +358,11 @@ public class Services
             if (media == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (media.Service == null) return Results.Forbid();
+                var agency = media.Service != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId)
+                    : null;
+                if (media.Service == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
             media.Caption = updated.Caption;
@@ -370,8 +385,11 @@ public class Services
             if (media == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (media.Service == null) return Results.Forbid();
+                var agency = media.Service != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == media.Service.AgencyId)
+                    : null;
+                if (media.Service == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
             // Unset all other featured media for this service
@@ -411,8 +429,11 @@ public class Services
             if (service == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (service.Agency == null) return Results.Forbid();
+                var agency = service.Agency != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == service.AgencyId)
+                    : null;
+                if (service.Agency == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 
@@ -435,8 +456,11 @@ public class Services
             if (availability == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == availability.Service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (availability.Service == null) return Results.Forbid();
+                var agency = availability.Service != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == availability.Service.AgencyId)
+                    : null;
+                if (availability.Service == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 
@@ -461,8 +485,11 @@ public class Services
             if (availability == null) return Results.NotFound();
             if (role == "agency")
             {
-                var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == availability.Service.AgencyId);
-                if (agency == null || agency.UserId != userId)
+                if (availability.Service == null) return Results.Forbid();
+                var agency = availability.Service != null
+                    ? await dbContext.Agencies.FirstOrDefaultAsync(a => a.Id == availability.Service.AgencyId)
+                    : null;
+                if (availability.Service == null || agency == null || agency.UserId != userId)
                     return Results.Forbid();
             }
 

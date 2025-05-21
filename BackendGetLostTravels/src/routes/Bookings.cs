@@ -82,7 +82,7 @@ public class Bookings
             if (user == null || user.Role != "agency") return Results.Forbid();
             var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.UserId == user.Id);
             if (agency == null) return Results.NotFound();
-            var booking = await dbContext.Bookings.Include(b => b.Service).FirstOrDefaultAsync(b => b.Id == id && b.Service.AgencyId == agency.Id);
+            var booking = await dbContext.Bookings.Include(b => b.Service).FirstOrDefaultAsync(b => b.Id == id && b.Service != null && b.Service.AgencyId == agency.Id);
             if (booking == null) return Results.NotFound();
             if (booking.Status != "pending") return Results.BadRequest(new { message = "Only pending bookings can be confirmed." });
             booking.Status = "confirmed";
@@ -97,7 +97,7 @@ public class Bookings
             if (user == null || user.Role != "agency") return Results.Forbid();
             var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.UserId == user.Id);
             if (agency == null) return Results.NotFound();
-            var booking = await dbContext.Bookings.Include(b => b.Service).FirstOrDefaultAsync(b => b.Id == id && b.Service.AgencyId == agency.Id);
+            var booking = await dbContext.Bookings.Include(b => b.Service).FirstOrDefaultAsync(b => b.Id == id && b.Service != null && b.Service.AgencyId == agency.Id);
             if (booking == null) return Results.NotFound();
             if (booking.Status != "confirmed") return Results.BadRequest(new { message = "Only confirmed bookings can be completed." });
             booking.Status = "completed";
