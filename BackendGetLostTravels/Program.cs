@@ -1,6 +1,4 @@
 using WebApplication2.extensions;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,16 +7,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add authentication with a default scheme (simple cookie or custom scheme)
-builder.Services.AddAuthentication(options =>
+// Add CORS
+builder.Services.AddCors(options =>
 {
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-}).AddCookie();
-// If using JWT, use AddJwtBearer instead
-// builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//     .AddJwtBearer(options => { /* configure JWT here */ });
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
@@ -46,11 +45,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// Auto-register custom middleware
-app.UseMiddlewaresFromDirectory("src/middleware");
-
-app.UseAuthentication();
-app.UseAuthorization();
+// Add CORS middleware
+app.UseCors();
 
 // Map controllers
 app.MapControllers();
