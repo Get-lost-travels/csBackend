@@ -641,5 +641,41 @@ public class Services
             await dbContext.SaveChangesAsync();
             return Results.NoContent();
         });
+
+        // CUSTOMER: BOOK A SERVICE
+        app.MapPost($"/{routePath}/{{id}}/book", async (int id, [FromBody] Booking bookingRequest, DatabaseContext dbContext, HttpContext httpContext) =>
+        {
+            var user = httpContext.Items["User"] as User;
+            if (user == null || user.Role != "customer") return Results.Forbid();
+
+            var service = await dbContext.Services.Include(s => s.ServiceAvailabilities).FirstOrDefaultAsync(s => s.Id == id);
+            if (service == null) return Results.NotFound();
+            var availability = service.ServiceAvailabilities.FirstOrDefault(a => a.RemainingSpots > 0 && a.StartDate <= DateTime.UtcNow && a.EndDate >= DateTime.UtcNow);
+            if (availability == null) return Results.BadRequest(new { message = "No available slots for this service." });
+
+            availability.RemainingSpots--;
+
+            var booking = new Booking
+            {
+                UserId = user.Id,
+                ServiceId = id,
+                BookingDate = DateTime.UtcNow,
+                Status = "pending",
+            };
+            dbContext.Bookings.Add(booking);
+            await dbContext.SaveChangesAsync();
+
+            var ticketCode = $"TKT-{booking.Id}-{Guid.NewGuid().ToString()[..8].ToUpper()}";
+            var eticket = new ETicket
+            {
+                BookingId = booking.Id,
+                TicketCode = ticketCode,
+                IssuedAt = DateTime.UtcNow,
+            };
+            dbContext.ETickets.Add(eticket);
+            await dbContext.SaveChangesAsync();
+            booking.ETicket = eticket;
+            return Results.Created($"/{routePath}/{booking.Id}", booking);
+        });
     }
 }

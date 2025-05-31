@@ -12,26 +12,6 @@ public class Bookings
 {
     public static void RegisterRoutes(WebApplication app, string routePath)
     {
-        // CUSTOMER: CREATE BOOKING
-        app.MapPost($"/{routePath}", async ([FromBody] Booking booking, DatabaseContext dbContext, HttpContext httpContext) =>
-        {
-            var user = httpContext.Items["User"] as User;
-            if (user == null || user.Role != "customer") return Results.Forbid();
-            // Check service and availability
-            var service = await dbContext.Services.Include(s => s.ServiceAvailabilities).FirstOrDefaultAsync(s => s.Id == booking.ServiceId);
-            if (service == null) return Results.NotFound();
-            var availability = service.ServiceAvailabilities.FirstOrDefault(a => a.RemainingSpots > 0 && a.StartDate <= DateTime.UtcNow && a.EndDate >= DateTime.UtcNow);
-            if (availability == null) return Results.BadRequest(new { message = "No available slots for this service." });
-            // Reserve spot
-            availability.RemainingSpots--;
-            booking.UserId = user.Id;
-            booking.BookingDate = DateTime.UtcNow;
-            booking.Status = "pending";
-            dbContext.Bookings.Add(booking);
-            await dbContext.SaveChangesAsync();
-            return Results.Created($"/{routePath}/{booking.Id}", booking);
-        });
-
         // CUSTOMER: LIST MY BOOKINGS
         app.MapGet($"/{routePath}/my", async (DatabaseContext dbContext, HttpContext httpContext) =>
         {
