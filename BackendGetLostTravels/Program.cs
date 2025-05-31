@@ -1,6 +1,9 @@
+using QuestPDF.Infrastructure;
 using WebApplication2.extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Add services to container
 builder.Services.AddControllers();

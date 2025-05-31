@@ -17,10 +17,32 @@ public class Bookings
         {
             var user = httpContext.Items["User"] as User;
             if (user == null || user.Role != "customer") return Results.Forbid();
+
+            // Use Select to avoid circular reference
             var bookings = await dbContext.Bookings
                 .Where(b => b.UserId == user.Id)
-                .Include(b => b.Service)
-                .Include(b => b.ETicket)
+                .Select(b => new {
+                    b.Id,
+                    b.ServiceId,
+                    b.UserId,
+                    b.BookingDate,
+                    b.Status,
+                    Service = new
+                    {
+                        b.Service.Id,
+                        b.Service.Title,
+                        b.Service.Price,
+                        b.Service.Location,
+                        b.Service.Duration
+                    },
+                    ETicket = b.ETicket != null ? new
+                    {
+                        b.ETicket.Id,
+                        b.ETicket.TicketCode,
+                        b.ETicket.IssuedAt,
+                        b.ETicket.QrCodeUrl
+                    } : null
+                })
                 .ToListAsync();
             return Results.Ok(new { status = StatusCodes.Status200OK, bookings });
         });
@@ -38,7 +60,14 @@ public class Bookings
             var availability = await dbContext.ServiceAvailabilities.FirstOrDefaultAsync(a => a.ServiceId == booking.ServiceId && a.StartDate <= booking.BookingDate && a.EndDate >= booking.BookingDate);
             if (availability != null) availability.RemainingSpots++;
             await dbContext.SaveChangesAsync();
-            return Results.Ok(booking);
+
+            // Return simple object to avoid circular reference
+            return Results.Ok(new
+            {
+                booking.Id,
+                booking.Status,
+                message = "Booking cancelled successfully"
+            });
         });
 
         // AGENCY: LIST BOOKINGS FOR MY SERVICES
@@ -48,9 +77,24 @@ public class Bookings
             if (user == null || user.Role != "agency") return Results.Forbid();
             var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.UserId == user.Id);
             if (agency == null) return Results.NotFound();
+
             var bookings = await dbContext.Bookings
-                .Include(b => b.Service)
                 .Where(b => b.Service != null && b.Service.AgencyId == agency.Id)
+                .Select(b => new {
+                    b.Id,
+                    b.ServiceId,
+                    b.UserId,
+                    b.BookingDate,
+                    b.Status,
+                    Service = new
+                    {
+                        b.Service.Id,
+                        b.Service.Title,
+                        b.Service.Price,
+                        b.Service.Location,
+                        b.Service.Duration
+                    }
+                })
                 .ToListAsync();
             return Results.Ok(new { status = StatusCodes.Status200OK, bookings });
         });
@@ -67,7 +111,13 @@ public class Bookings
             if (booking.Status != "pending") return Results.BadRequest(new { message = "Only pending bookings can be confirmed." });
             booking.Status = "confirmed";
             await dbContext.SaveChangesAsync();
-            return Results.Ok(booking);
+
+            return Results.Ok(new
+            {
+                booking.Id,
+                booking.Status,
+                message = "Booking confirmed successfully"
+            });
         });
 
         // AGENCY: MARK BOOKING AS COMPLETED
@@ -82,7 +132,13 @@ public class Bookings
             if (booking.Status != "confirmed") return Results.BadRequest(new { message = "Only confirmed bookings can be completed." });
             booking.Status = "completed";
             await dbContext.SaveChangesAsync();
-            return Results.Ok(booking);
+
+            return Results.Ok(new
+            {
+                booking.Id,
+                booking.Status,
+                message = "Booking completed successfully"
+            });
         });
 
         // CUSTOMER: GET BOOKING DETAILS
@@ -90,17 +146,42 @@ public class Bookings
         {
             var user = httpContext.Items["User"] as User;
             if (user == null) return Results.Forbid();
+
             var booking = await dbContext.Bookings
-                .Include(b => b.Service)
-                .Include(b => b.ETicket)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .Where(b => b.Id == id)
+                .Select(b => new {
+                    b.Id,
+                    b.ServiceId,
+                    b.UserId,
+                    b.BookingDate,
+                    b.Status,
+                    Service = new
+                    {
+                        b.Service.Id,
+                        b.Service.Title,
+                        b.Service.Price,
+                        b.Service.Location,
+                        b.Service.Duration,
+                        b.Service.AgencyId
+                    },
+                    ETicket = b.ETicket != null ? new
+                    {
+                        b.ETicket.Id,
+                        b.ETicket.TicketCode,
+                        b.ETicket.IssuedAt,
+                        b.ETicket.QrCodeUrl
+                    } : null
+                })
+                .FirstOrDefaultAsync();
+
             if (booking == null) return Results.NotFound();
+
             // Only allow the customer who booked, the agency owner, or webadmin
             if (user.Role == "customer" && booking.UserId != user.Id) return Results.Forbid();
             if (user.Role == "agency")
             {
                 var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.UserId == user.Id);
-                if (agency == null || booking.Service == null || booking.Service.AgencyId != agency.Id) return Results.Forbid();
+                if (agency == null || booking.Service?.AgencyId != agency.Id) return Results.Forbid();
             }
             // webadmin can view all
             return Results.Ok(booking);
@@ -119,7 +200,15 @@ public class Bookings
                 var agency = await dbContext.Agencies.FirstOrDefaultAsync(a => a.UserId == user.Id);
                 if (agency == null || booking.Service == null || booking.Service.AgencyId != agency.Id) return Results.Forbid();
             }
-            return Results.Ok(booking.ETicket);
+
+            // Return only ETicket data without circular reference
+            return Results.Ok(new
+            {
+                booking.ETicket.Id,
+                booking.ETicket.TicketCode,
+                booking.ETicket.IssuedAt,
+                booking.ETicket.QrCodeUrl
+            });
         });
 
         // CUSTOMER: REQUEST REFUND
@@ -140,7 +229,14 @@ public class Bookings
             };
             dbContext.RefundDisputes.Add(dispute);
             await dbContext.SaveChangesAsync();
-            return Results.Created($"/{routePath}/{id}/refund/{dispute.Id}", dispute);
+            return Results.Created($"/{routePath}/{id}/refund/{dispute.Id}", new
+            {
+                dispute.Id,
+                dispute.BookingId,
+                dispute.Status,
+                dispute.Reason,
+                dispute.OpenedAt
+            });
         });
 
         // AGENCY: RESPOND TO REFUND
@@ -155,7 +251,12 @@ public class Bookings
             dispute.AgencyResponse = response;
             dispute.Status = "agency_responded";
             await dbContext.SaveChangesAsync();
-            return Results.Ok(dispute);
+            return Results.Ok(new
+            {
+                dispute.Id,
+                dispute.Status,
+                dispute.AgencyResponse
+            });
         });
 
         // WEBADMIN: LIST ALL BOOKINGS
@@ -163,7 +264,28 @@ public class Bookings
         {
             var user = httpContext.Items["User"] as User;
             if (user == null || user.Role != "webadmin") return Results.Forbid();
-            var bookings = await dbContext.Bookings.Include(b => b.Service).Include(b => b.User).ToListAsync();
+            var bookings = await dbContext.Bookings
+                .Select(b => new {
+                    b.Id,
+                    b.ServiceId,
+                    b.UserId,
+                    b.BookingDate,
+                    b.Status,
+                    Service = new
+                    {
+                        b.Service.Id,
+                        b.Service.Title,
+                        b.Service.Price,
+                        b.Service.Location
+                    },
+                    User = new
+                    {
+                        b.User.Id,
+                        b.User.Username,
+                        b.User.Email
+                    }
+                })
+                .ToListAsync();
             return Results.Ok(new { status = StatusCodes.Status200OK, bookings });
         });
 
@@ -179,7 +301,12 @@ public class Bookings
             dispute.ResolvedBy = user.Id;
             dispute.ResolvedAt = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
-            return Results.Ok(dispute);
+            return Results.Ok(new
+            {
+                dispute.Id,
+                dispute.Status,
+                dispute.AdminVerdict
+            });
         });
 
         // CUSTOMER/AGENCY/ADMIN: DOWNLOAD E-TICKET PDF (real PDF)

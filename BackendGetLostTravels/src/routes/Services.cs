@@ -76,7 +76,8 @@ public class Services
                 })
                 .ToListAsync();
 
-            return Results.Ok(new {
+            return Results.Ok(new
+            {
                 status = StatusCodes.Status200OK,
                 total,
                 page,
@@ -172,7 +173,8 @@ public class Services
                 .Include(s => s.ServiceMedia)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (service == null) return Results.NotFound();
-            return Results.Ok(new {
+            return Results.Ok(new
+            {
                 service.Id,
                 service.Title,
                 service.Price,
@@ -642,7 +644,6 @@ public class Services
             return Results.NoContent();
         });
 
-        // CUSTOMER: BOOK A SERVICE
         app.MapPost($"/{routePath}/{{id}}/book", async (int id, [FromBody] Booking bookingRequest, DatabaseContext dbContext, HttpContext httpContext) =>
         {
             var user = httpContext.Items["User"] as User;
@@ -674,8 +675,30 @@ public class Services
             };
             dbContext.ETickets.Add(eticket);
             await dbContext.SaveChangesAsync();
-            booking.ETicket = eticket;
-            return Results.Created($"/{routePath}/{booking.Id}", booking);
+
+            return Results.Created($"/bookings/{booking.Id}", new
+            {
+                booking.Id,
+                booking.UserId,
+                booking.ServiceId,
+                booking.BookingDate,
+                booking.Status,
+                Service = new
+                {
+                    service.Id,
+                    service.Title,
+                    service.Price,
+                    service.Location,
+                    service.Duration
+                },
+                ETicket = new
+                {
+                    eticket.Id,
+                    eticket.TicketCode,
+                    eticket.IssuedAt,
+                    eticket.QrCodeUrl
+                }
+            });
         });
     }
 }
