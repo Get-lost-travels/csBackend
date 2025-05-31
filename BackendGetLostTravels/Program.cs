@@ -48,6 +48,12 @@ app.UseRouting();
 // Add CORS middleware
 app.UseCors();
 
+// Auto-register custom middleware
+app.UseMiddlewaresFromDirectory("src/middlewares");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Map controllers
 app.MapControllers();
 
