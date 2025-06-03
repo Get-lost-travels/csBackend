@@ -218,34 +218,6 @@ public class Services
             });
 
         // GET service details by id (any user)
-<<<<<<< HEAD
-        app.MapGet($"/{routePath}/{{id}}", async (int id, DatabaseContext dbContext) =>
-        {
-            var service = await dbContext.Services
-                .Include(s => s.Agency)
-                .Include(s => s.Category)
-                .Include(s => s.Reviews)
-                .Include(s => s.ServiceMedia)
-                .FirstOrDefaultAsync(s => s.Id == id);
-            if (service == null) return Results.NotFound();
-            return Results.Ok(new
-            {
-                service.Id,
-                service.Title,
-                service.Price,
-                service.Location,
-                service.Duration,
-                service.Description,
-                service.Itinerary,
-                service.Inclusions,
-                service.Exclusions,
-                service.Terms,
-                Agency = service.Agency != null ? new { service.Agency.Id, service.Agency.Name, service.Agency.LogoUrl } : null,
-                Category = service.Category != null ? new { service.Category.Id, service.Category.Name } : null,
-                AverageRating = service.Reviews.Any() ? service.Reviews.Average(r => r.Rating) : null,
-                ReviewCount = service.Reviews.Count,
-                Media = service.ServiceMedia.Select(m => new { m.Id, m.MediaType, m.Url, m.Caption, m.IsFeatured })
-=======
         app.MapGet($"/{routePath}/{{id}}",
             async (int id, DatabaseContext dbContext) =>
             {
@@ -285,7 +257,6 @@ public class Services
                     Media = service.ServiceMedia.Select(m => new
                         { m.Id, m.MediaType, m.Url, m.Caption, m.IsFeatured })
                 });
->>>>>>> 8cf5220 (Fix role checking bugs)
             });
 
         // GET all service categories (any user)
@@ -895,14 +866,10 @@ public class Services
                 return Results.NoContent();
             });
 
-<<<<<<< HEAD
-        app.MapPost($"/{routePath}/{{id}}/book", async (int id, [FromBody] Booking bookingRequest, DatabaseContext dbContext, HttpContext httpContext) =>
-=======
         // CUSTOMER: BOOK A SERVICE
         app.MapPost($"/{routePath}/{{id}}/book", async (int id,
             [FromBody] Booking bookingRequest, DatabaseContext dbContext,
             HttpContext httpContext) =>
->>>>>>> 8cf5220 (Fix role checking bugs)
         {
             var user = httpContext.Items["User"] as User;
             if (user == null || user.Role != "customer")
