@@ -83,6 +83,12 @@ public class Bookings
                 .Select(b => new {
                     b.Id,
                     b.ServiceId,
+                    User = b.User != null ? new
+                    {
+                        b.User.Id,
+                        b.User.Username,
+                        b.User.Email
+                    } : null,
                     b.UserId,
                     b.BookingDate,
                     b.Status,
